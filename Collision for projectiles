@@ -1,0 +1,62 @@
+-- made by oCrxptic
+
+players = {}
+
+playerParts = {} -- Insert all parts to check collision for in players
+
+function checkCollision(part) -- new
+   local connection = part.Touched:Connect(function() end)
+   local results = part:GetTouchingParts()
+   connection:Disconnect()
+   return results
+end
+
+game.Players.PlayerAdded:Connect(function(player)
+	table.insert(players, 1, player)
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+	for i,v in pairs(players) do
+		if v.Name == player.Name then
+			table.remove(players, i)
+		end
+	end
+end)
+
+-- Ignis
+
+spells_ignis = {} -- Empty by default, as no spells have been cast.
+
+game.Workspace.Spells.Ignis.ChildAdded:Connect(function()
+	local damage
+	spells_ignis = game.Workspace.Spells.Ignis:GetChildren()
+	
+	while #spells_ignis > 0 do
+		wait(0.15)
+		for i,v in pairs(spells_ignis) do
+			local collisionCheck = checkCollision(v)
+			if #collisionCheck > 0 then
+				for x,y in pairs(collisionCheck) do
+					for m=1,#playerParts,1 do
+						if y.Name == playerParts[m] then
+							local characterOfCollision = y.Parent
+							local nameOfCollision = characterOfCollision.Name -- Could be used for scoreboard updates
+							-- Deal appropriate damage to player
+							characterOfCollision.Humanoid:TakeDamage(damage) -- Damage is defined inside of the "Ignis" spell object
+							break
+						end
+					end
+				end
+				print("Collision")
+				v:Destroy()
+			else
+				game.ReplicatedStorage.Debug.Recieve:FireAllClients()
+			end
+		end
+	end
+end)
+
+game.Workspace.Spells.Ignis.ChildRemoved:Connect(function()
+	spells_ignis = game.Workspace.Spells.Ignis:GetChildren()
+end)
+
